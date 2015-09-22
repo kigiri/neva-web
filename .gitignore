@@ -1,0 +1,6 @@
+node_modules
+public
+app/lib/_/
+trash
+npm-debug.log
+.DS_Store
