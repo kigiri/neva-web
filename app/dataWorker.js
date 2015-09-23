@@ -1,5 +1,4 @@
-var window = self;
-console.log(self);
+const window = self.window = self;
 
 import is from "$/is";
 import sup from "$/sup";
@@ -26,32 +25,40 @@ function newSqlData(keys, values) {
 }
 
 function saveData(key, data) {
-  if (dataStore[key]) {
+  if (dataStore[key].isComplete !== void 0) {
     dataStore[key].values.push(newSqlData(dataStore[key].keys, data));
   } else {
-    const req = indexedDB.open(key);
-    // req.onupradeneeded = () => {}
-    req.onsuccess = event => {
-      db = event.target.result;
-    }
-    dataStore[key] = {
-      keys: data,
-      values: [],
-    }
+    dataStore[key].isComplete = false;
   }
 }
 
 const matchNewLines = /,[\r\n]+/;
-const matchArrays = /(\[[^\[\]]+\])/;
+
+function getArrayFromMatch(match) {
+  let start = 3;
+  let end = match.length - 4;
+
+  while (--start > -1) {
+    if (match[start] === "[") { break }
+  }
+  while (++end < match.length) {
+    if (match[end] === "]") {
+      return match.slice(start, end + 1);
+    }
+  }
+}
+
+function parseData(name, data) {
+  if (!data) { return }
+  saveData(name, JSON.parse(data));
+}
+
 function _store(name, data) {
   const matches = data.split(matchNewLines);
   let i = -1;
 
   while (++i < matches.length) {
-    let yo = matches[i].split(matchArrays)[1];
-    if (yo) {
-      saveData(name, JSON.parse(yo));
-    }
+    parseData(name, getArrayFromMatch(matches[i]));
   }
   return matches[matches.length - 1];
 }
@@ -131,7 +138,7 @@ const query = {
     q = q.trim().toLowerCase();
     if (previousQuery === q) { return }
     previousQuery = q;
-    const vals = dataStore.items.values;
+    const vals = dataStore.item_template.values;
     let i = -1, score, match = MatchList(q, "name", Main.result);
     Main.clearResults();
     (function recur() {
@@ -143,7 +150,7 @@ const query = {
         }
         match(vals[i]);
       }
-      if (!dataStore.items.isComplete) {
+      if (!dataStore.item_template.isComplete) {
         return setTimeout(recur, 16);
       }
       if (match.name === "Me") {
@@ -155,18 +162,29 @@ const query = {
   }
 }
 
+fetch("//neva.cdenis.net/json/tables.min.json")
+.then(res => res.json())
+.then(data => Object.keys(data.tables).reduce((result, key) => {
+  result[key] = {
+    keys: data.tables[key],
+    values: [],
+    size: data.sizes[key],
+  };
+  return result;
+}, dataStore)).then(dataStore => {
+  console.log("what??", dataStore)
 sup({
   ask: (table, q) => query[table](q),
 }).then(m => {
-  Main = m;
+  console.log("m", m);
   function loadContent(name, length) {
     const download = "Downloading "+ name +" data";
     const saveToStore = _store.bind(null, name);
-    Main.progress(download, 0);
+    m.progress(download, 0);
     const start = performance.now();
     let n = start;
 
-    return fetch("//neva.cdenis.net/"+ name +".json").then(({body})=> {
+    return fetch("//neva.cdenis.net/json/"+ name +".json").then(({body})=> {
       const reader = body.getReader();
       const decoder = new TextDecoder();
       let n = true;
@@ -184,7 +202,7 @@ sup({
 
           if (!done) {
             if (performance.now() - n > 64) {
-              Main.progress(download, total / length);
+              m.progress(download, total / length);
               n = performance.now();
             }
             partial = saveToStore(partial);
@@ -192,14 +210,20 @@ sup({
           }
           reader.cancel();
           dataStore[name].isComplete = true;
-          Main.progress(download, 1);
+          m.progress(download, 1);
         })
       })();
     }).catch(console.error.bind(console));
   }
-  loadContent("items", 6781317);
-  loadContent("items_loot", 150903);
-});
+
+  Object.keys(dataStore).forEach(key => {
+    console.log(key, dataStore[key].size);
+    loadContent(key, dataStore[key].size);
+  })
+
+  Main = m;
+})
+} );
 
 
 

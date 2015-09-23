@@ -32,12 +32,21 @@ const sup = (w, msg) => new Promise(resolve => {
       return r;
     }, {}));
   }
-  w.postMessage(_keys(msg));
 });
 
 const yo = (a, b) => is.text(a) ? yo.main(a, b) : yo.worker(a);
 
-yo.worker = msg => sup(self, msg);
-yo.main = (name, msg) => sup(new Worker("/"+ name +".js?" + Math.random()), msg);
+yo.worker = msg => {
+  self.postMessage(_keys(msg));
+  return sup(self, msg);
+};
+
+yo.main = (name, msg) => {
+  const w = new Worker("/"+ name +".js?" + Math.random());
+  return sup(w, msg).then(pass => {
+    w.postMessage(_keys(msg))
+    return pass;
+  });
+};
 
 export default yo;
