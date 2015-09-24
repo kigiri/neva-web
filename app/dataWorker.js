@@ -12,8 +12,11 @@ function convertArray(keys, item) {
   return ret;
 }
 
-// should already have all the keys
 const dataStore = {};
+const MAX_RESULTS = 50 - 1;
+const messages = {
+  ask: (table, q) => query[table](q),
+};
 
 function newSqlData(keys, values) {
   let i = -1;
@@ -28,6 +31,7 @@ function saveData(key, data) {
   if (dataStore[key].isComplete !== void 0) {
     dataStore[key].values.push(newSqlData(dataStore[key].keys, data));
   } else {
+    dataStore[key].keys = data; // to ensure the order match the results
     dataStore[key].isComplete = false;
   }
 }
@@ -74,12 +78,15 @@ function MatchList(q, key, fn) {
 
   function handleMatch(score, data) {
     if (score < minScore || firstMatches.get(data) === score) { return }
+    if (dataStore.icons) {
+      data.icon = dataStore.icons[data.entry];
+    }
     fn(score, data);
     firstMatches.set(data, score);
     matches.push(score)
     matches.sort(sortMatches);
-    if (matches.length > 9) {
-      minScore = matches[9];
+    if (matches.length > MAX_RESULTS) {
+      minScore = matches[MAX_RESULTS];
     }
   }
 
@@ -130,8 +137,7 @@ function MatchList(q, key, fn) {
   return Me;
 }
 
-
-let Main;
+let Say;
 let previousQuery;
 const query = {
   items: (q) => {
@@ -139,8 +145,8 @@ const query = {
     if (previousQuery === q) { return }
     previousQuery = q;
     const vals = dataStore.item_template.values;
-    let i = -1, score, match = MatchList(q, "name", Main.result);
-    Main.clearResults();
+    let i = -1, match = MatchList(q, "name", Say.result);
+    Say.clearResults();
     (function recur() {
       if (previousQuery !== q) { return }
       const n = performance.now();
@@ -162,25 +168,11 @@ const query = {
   }
 }
 
-fetch("//neva.cdenis.net/json/tables.min.json")
-.then(res => res.json())
-.then(data => Object.keys(data.tables).reduce((result, key) => {
-  result[key] = {
-    keys: data.tables[key],
-    values: [],
-    size: data.sizes[key],
-  };
-  return result;
-}, dataStore)).then(dataStore => {
-  console.log("what??", dataStore)
-sup({
-  ask: (table, q) => query[table](q),
-}).then(m => {
-  console.log("m", m);
+const loadTablesData = say => new Promise(resolve => {
   function loadContent(name, length) {
     const download = "Downloading "+ name +" data";
     const saveToStore = _store.bind(null, name);
-    m.progress(download, 0);
+    say.progress(download, 0);
     const start = performance.now();
     let n = start;
 
@@ -202,7 +194,7 @@ sup({
 
           if (!done) {
             if (performance.now() - n > 64) {
-              m.progress(download, total / length);
+              say.progress(download, total / length);
               n = performance.now();
             }
             partial = saveToStore(partial);
@@ -210,20 +202,57 @@ sup({
           }
           reader.cancel();
           dataStore[name].isComplete = true;
-          m.progress(download, 1);
+          say.progress(download, 1);
+          if (name === "item_template") {
+            resolve();
+          }
         })
       })();
     }).catch(console.error.bind(console));
   }
 
-  Object.keys(dataStore).forEach(key => {
-    console.log(key, dataStore[key].size);
-    loadContent(key, dataStore[key].size);
-  })
+  Object.keys(dataStore)
+  .sort((a, b) => dataStore[a].size - dataStore[b].size)
+  .forEach(key => loadContent(key, dataStore[key].size))
 
-  Main = m;
+  Say = say;
+});
+
+function setIcon(entries, name) {
+  var i = -1;
+  while (++i < entries.length) {
+    dataStore.icons[entries[i]] = name;
+  }
+}
+
+const fetchIcons = () => new Promise(resolve => {
+  dataStore.icons = {};
+  fetch("//neva.cdenis.net/json/icons.json")
+  .then(res => res.json())
+  .then(icons => {
+    const names = Object.keys(icons);
+    var i = -1;
+    while (++i < names.length) {
+      setIcon(icons[names[i]], names[i]);
+    }
+  })
+  .then(resolve)
 })
-} );
+
+fetch("//neva.cdenis.net/json/tables.min.json")
+.then(res => res.json())
+.then(data => Object.keys(data.tables).reduce((result, key) => {
+  result[key] = {
+    size: data.sizes[key],
+    keys: data.tables[key],
+    values: [],
+  };
+  return result;
+}, dataStore))
+.then(() => sup(messages))
+.then(loadTablesData)
+.then(fetchIcons)
+// .then(() => console.log(dataStore, performance.now() - n));
 
 
 

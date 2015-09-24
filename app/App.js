@@ -13,7 +13,7 @@ sup("dataWorker", {
     Search.results.push(score, data.name, data, "entry");
   },
 }).then(worker =>{
-  console.log("worker is now available", worker);
+  window.ask = worker.ask;
   Search.bar.add(value => worker.ask(Search.bar.selectedList, value))
 });
 
