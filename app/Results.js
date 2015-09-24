@@ -2,6 +2,8 @@ import ui from "ui/new";
 import by from "$/by";
 import loop from "event/loop";
 
+const MAX_RESULTS = 50;
+
 function Result(_, i) {
   const elem = ui.div({
     style: {      
@@ -31,9 +33,8 @@ function Result(_, i) {
   return me;
 }
 
-const maxResult = 10;
 const results = [];
-const resultsElem = Array.from(Array(10), Result);
+const resultsElem = Array.from(Array(MAX_RESULTS), Result);
 const selected = 0;
 const elem = ui.div({}, resultsElem);
 const Me = {
@@ -75,7 +76,7 @@ loop.add(event => {
     changes = false;
     results.sort(customSort);
     let i = -1;
-    while (++i < 10) {
+    while (++i < MAX_RESULTS) {
       resultsElem[i].set(results[i]);
     }
   }

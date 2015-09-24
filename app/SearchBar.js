@@ -20,15 +20,9 @@ const me = Task();
 // if weapon : damages min / max
 // if armor : armor
 
-const list = [
-  "creatures",
-  "players",
-  "quests",
-  "items",
-];
+const list = [];
 
-const placeholder = "Either "+ list.reduce((r, v, i, t) =>
-  r +(i === t.length - 1 ? ' or ' : ', ') + v) +".";
+let placeholder = "";
 
 const getNextInList = (() => {
   let prev = -1;
@@ -39,7 +33,7 @@ const getNextInList = (() => {
     } else if (prev < 0) {
       prev = list.length - 1;
     }
-    return list[prev];
+    return list[prev].name;
   }
 })()
 
@@ -47,8 +41,8 @@ function matchInList(val) {
   if (!val) { return false }
   val = val.toLowerCase();
   for (let match of list) {
-    if (match.indexOf(val) === 0) {
-      return match;
+    if (match.name.indexOf(val) === 0) {
+      return match.name;
     }
   }
   return false;
@@ -65,8 +59,10 @@ function deselectListIfEmpty() {
 }
 
 const skip = () => {};
+const selectInput = e => selectEditableContent(input);
 const input = ui.span({
   tabIndex: 1,
+  onfocus: selectInput, 
   style: style.input,
   spellcheck: false,
   contentEditable: true,
@@ -75,7 +71,7 @@ const input = ui.span({
     9: event => { // tab
       if (!me.selectedList) {
         if (!me.value) {
-          autoComlete.textContent = getNextInList(event.shiftKey);
+          autoComlete.textContent = getNextInList(event.shiftKey).ne;
         } else {
           tryToChooseList(me.value);
         }
@@ -87,7 +83,7 @@ const input = ui.span({
           tryToChooseList(autoComlete.textContent);
         }
       } else {
-        // call select on results
+        // me.selectedList.select();
       }
     },
     37: deselectListIfEmpty,
@@ -97,7 +93,7 @@ const input = ui.span({
           autoComlete.textContent = getNextInList(true);
         }
       } else {
-        // call results prev
+        // me.selectedList.prev();
       }
     },
     39: () => {
@@ -112,7 +108,7 @@ const input = ui.span({
           autoComlete.textContent = getNextInList(false);
         }
       } else {
-        // call results next
+        // me.selectedList.next();
       }
     },
   }),
@@ -125,7 +121,7 @@ const autoComlete = ui.span({ style: {
 
 const elem = ui.div({
   style: style.outerBar,
-  onclick: e => selectEditableContent(input),
+  onclick: selectInput,
 }, innerBar, input, autoComlete);
 
 
@@ -173,6 +169,15 @@ me.HTMLElement = elem;
 me.select = () => {
   selectEditableContent(input);
   return me;
+}
+
+me.push = l => {
+  list.push(l);
+  console.log(list[0].name);
+  placeholder = (list.length === 1)
+  ? "Only "+ l.name +" available at the moment"
+  : "Either "+ list.reduce((r, v, i, t) =>
+    (r.name || r) + (i === t.length - 1 ? ' or ' : ', ') + v.name) +".";
 }
 
 export default me;
