@@ -1,7 +1,14 @@
 const window = self.window = self;
+const MAX_RESULTS = 50 - 1;
+const dataStore = {};
 
 import is from "$/is";
 import sup from "$/sup";
+import initDb from "./db";
+
+let Main;
+let previousQuery;
+let db;
 
 function convertArray(keys, item) {
   let i = -1;
@@ -13,8 +20,6 @@ function convertArray(keys, item) {
 }
 
 // should already have all the keys
-const dataStore = {};
-
 function newSqlData(keys, values) {
   let i = -1;
   let ret = {};
@@ -25,10 +30,11 @@ function newSqlData(keys, values) {
 }
 
 function saveData(key, data) {
-  if (dataStore[key].isComplete !== void 0) {
-    dataStore[key].values.push(newSqlData(dataStore[key].keys, data));
+  if (db.stores[key].isComplete !== void 0) {
+    db.queue(() => db.stores[key].add(newSqlData(dataStore[key].keys, data)));
   } else {
-    dataStore[key].isComplete = false;
+    dataStore[key].keys = data;
+    db.stores[key].isComplete = false;
   }
 }
 
@@ -78,8 +84,8 @@ function MatchList(q, key, fn) {
     firstMatches.set(data, score);
     matches.push(score)
     matches.sort(sortMatches);
-    if (matches.length > 9) {
-      minScore = matches[9];
+    if (matches.length > MAX_RESULTS) {
+      minScore = matches[MAX_RESULTS];
     }
   }
 
@@ -130,35 +136,22 @@ function MatchList(q, key, fn) {
   return Me;
 }
 
+const searchInName = (cursor, match) => {
+  if (previousQuery !== q) { return console.log("query changed") }
+  console.log(cursor)
+  match(cursor.values.name);
+  cursor.continue();
+}
 
-let Main;
-let previousQuery;
 const query = {
-  items: (q) => {
+  items: q => {
     q = q.trim().toLowerCase();
     if (previousQuery === q) { return }
-    previousQuery = q;
-    const vals = dataStore.item_template.values;
-    let i = -1, score, match = MatchList(q, "name", Main.result);
+    let match = MatchList(previousQuery = q, "name", Main.result);
     Main.clearResults();
-    (function recur() {
-      if (previousQuery !== q) { return }
-      const n = performance.now();
-      while (++i < vals.length) {
-        if (performance.now() - n > 16) {
-          return setTimeout(recur);
-        }
-        match(vals[i]);
-      }
-      if (!dataStore.item_template.isComplete) {
-        return setTimeout(recur, 16);
-      }
-      if (match.name === "Me") {
-        match = match.deep;
-        i = -1;
-        return setTimeout(recur);
-      }
-    })();
+    console.log(q, db.store.item_template);
+    db.store.item_template.each(cursor => searchInName(cursor, match)).then(() =>
+      db.store.item_template.each(cursor => searchInName(cursor, match.deep)));
   }
 }
 
@@ -166,64 +159,78 @@ fetch("//neva.cdenis.net/json/tables.min.json")
 .then(res => res.json())
 .then(data => Object.keys(data.tables).reduce((result, key) => {
   result[key] = {
+    name: key,
+    keyPath: data.keyPath[key],
     keys: data.tables[key],
-    values: [],
     size: data.sizes[key],
   };
   return result;
-}, dataStore)).then(dataStore => {
-  console.log("what??", dataStore)
-sup({
-  ask: (table, q) => query[table](q),
-}).then(m => {
-  console.log("m", m);
-  function loadContent(name, length) {
-    const download = "Downloading "+ name +" data";
-    const saveToStore = _store.bind(null, name);
-    m.progress(download, 0);
-    const start = performance.now();
-    let n = start;
+}, dataStore))
+.then(dataStore => initDb(dataStore))
+.then(dbInstance => db = dbInstance)
+.then(db => {
+  // load icons if not available
+  db.stores.icon.count()
+  .then(count => {
+    console.log(count)
+    if (count === 4909) { return } // the icon count should never change
+    fetch("//neva.cdenis.net/json/icons.json")
+    .then(res => res.json())
+    .then(icons => {
+      // http://cdn.openwow.com/wotlk/icons/[small | medium | large]/[icon].jpg
+      Object.keys(icons).forEach(key =>
+        db.stores.icon.add({ name: key, entries: icons[key] }))
+    })
+  });
 
-    return fetch("//neva.cdenis.net/json/"+ name +".json").then(({body})=> {
-      const reader = body.getReader();
-      const decoder = new TextDecoder();
-      let n = true;
-      let partial = '';
-      let total = 0;
+  // load content
+  sup({
+    ask: (table, q) => query[table](q),
+  }).then(m => {
+    console.log("m", m);
+    function loadContent(name, length) {
+      const download = "Downloading "+ name +" data";
+      const saveToStore = _store.bind(null, name);
+      m.progress(download, 0);
+      let time = performance.now();
 
-      return (function parse() {
-        return reader.read().then(({value, done}) => {
-          if (value) {
-            partial += decoder.decode(value, {stream: !done});
-            total += value.byteLength;
-          } else {
-            partial += decoder.decode(new Uint8Array, {stream: !done});
-          }
+      return fetch("//neva.cdenis.net/json/"+ name +".json").then(({body})=> {
+        const reader = body.getReader();
+        const decoder = new TextDecoder();
+        let n = true;
+        let partial = '';
+        let total = 0;
 
-          if (!done) {
-            if (performance.now() - n > 64) {
-              m.progress(download, total / length);
-              n = performance.now();
+        return (function parse() {
+          return reader.read().then(({value, done}) => {
+            if (value) {
+              partial += decoder.decode(value, {stream: !done});
+              total += value.byteLength;
+            } else {
+              partial += decoder.decode(new Uint8Array, {stream: !done});
             }
-            partial = saveToStore(partial);
-            return parse();
-          }
-          reader.cancel();
-          dataStore[name].isComplete = true;
-          m.progress(download, 1);
-        })
-      })();
-    }).catch(console.error.bind(console));
-  }
 
-  Object.keys(dataStore).forEach(key => {
-    console.log(key, dataStore[key].size);
-    loadContent(key, dataStore[key].size);
+            if (!done) {
+              if (performance.now() - time > 64) {
+                m.progress(download, total / length);
+                time = performance.now();
+              }
+              partial = saveToStore(partial);
+              return parse();
+            }
+            reader.cancel();
+            db.stores[name].isComplete = true;
+            m.progress(download, 1);
+          })
+        })();
+      }).catch(console.error.bind(console));
+    }
+
+    Object.keys(dataStore)
+    .filter(key => key !== "item_template")
+    .sort((a, b) => dataStore[a].size - dataStore[b].size)
+    .forEach(key => loadContent(key, dataStore[key].size))
+
+    Main = m;
   })
-
-  Main = m;
-})
-} );
-
-
-
+});
