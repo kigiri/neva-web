@@ -42,7 +42,7 @@ function matchInList(val) {
   val = val.toLowerCase();
   for (let match of list) {
     if (match.name.indexOf(val) === 0) {
-      return match.name;
+      return match;
     }
   }
   return false;
@@ -83,7 +83,7 @@ const input = ui.span({
           tryToChooseList(autoComlete.textContent);
         }
       } else {
-        // me.selectedList.select();
+        me.selectedList.select();
       }
     },
     37: deselectListIfEmpty,
@@ -93,7 +93,7 @@ const input = ui.span({
           autoComlete.textContent = getNextInList(true);
         }
       } else {
-        // me.selectedList.prev();
+        me.selectedList.prev();
       }
     },
     39: () => {
@@ -108,7 +108,7 @@ const input = ui.span({
           autoComlete.textContent = getNextInList(false);
         }
       } else {
-        // me.selectedList.next();
+        me.selectedList.next();
       }
     },
   }),
@@ -128,7 +128,8 @@ const elem = ui.div({
 function tryToChooseList(val) {
   me.selectedList = matchInList(val);
   if (!me.selectedList) { return }
-  innerBar.textContent = me.selectedList;
+  me.selectedList.activate();
+  innerBar.textContent = me.selectedList.name;
   innerBar.style.display = "block";
   input.textContent = "";
   autoComlete.textContent = "";
@@ -141,7 +142,7 @@ function listSelection(val) {
     autoComlete.textContent = placeholder;
     elem.classList.remove("invalid");
   } else {
-    const match = matchInList(val);
+    const match = matchInList(val).name;
     if (match) {
       autoComlete.textContent = match.slice(val.length);
       elem.classList.remove("invalid");
@@ -173,7 +174,6 @@ me.select = () => {
 
 me.push = l => {
   list.push(l);
-  console.log(list[0].name);
   placeholder = (list.length === 1)
   ? "Only "+ l.name +" available at the moment"
   : "Either "+ list.reduce((r, v, i, t) =>

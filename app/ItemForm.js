@@ -119,10 +119,10 @@ function makeStatInput(i, input, item) {
   return [ typeInput, valueInput ];
 }
 
-export default Form((self, input) => {
-  self.tooltips = doc;
-  self.table = "item_template";
-  self.primaryKey = "entry";
+export default Form((Me, input) => {
+  Me.tooltips = doc;
+  Me.table = "item_template";
+  Me.primaryKey = "entry";
 
   const restrictions = [
     input.number("RequiredLevel")
@@ -134,7 +134,7 @@ export default Form((self, input) => {
     input.select("ItemLimitCategory", limitCategories),
     input.select("RequiredReputationFaction", factions),
     input.select("RequiredReputationRank", ranks)
-    .if(data => data.RequiredReputationFaction != 0),
+      .if(data => data.RequiredReputationFaction != 0),
     input.select("requiredspell", spells),
     input.select("RequiredSkill", skills),
     input.number("RequiredSkillRank")
@@ -152,7 +152,7 @@ export default Form((self, input) => {
     .if(isOpennable)
     .add(_ => {
       if (minMoney.isActive) {
-        self.data.maxMoneyLoot = Math.floor(self.data.minMoneyLoot * 1.25);
+        Me.data.maxMoneyLoot = Math.floor(Me.data.minMoneyLoot * 1.25);
       }
     });
 
@@ -161,7 +161,7 @@ export default Form((self, input) => {
     .if(isOpennable)
     .add(_ => {
       if (maxMoney.isActive) {
-        self.data.minMoneyLoot = Math.floor(self.data.maxMoneyLoot * 0.75);
+        Me.data.minMoneyLoot = Math.floor(Me.data.maxMoneyLoot * 0.75);
       }
     });
 
@@ -169,7 +169,7 @@ export default Form((self, input) => {
     .test(type.intRange(0, type.int.total * 4))
     .add(_ => {
       if (buyPrice.isActive) {
-        self.data.SellPrice = Math.floor(self.data.BuyPrice / 4)
+        Me.data.SellPrice = Math.floor(Me.data.BuyPrice / 4)
       }
     });
 
@@ -177,7 +177,7 @@ export default Form((self, input) => {
     .test(type.int.unsigned)
     .add(_ => {
       if (sellPrice.isActive) {
-        self.data.BuyPrice = Math.floor(self.data.SellPrice * 4)
+        Me.data.BuyPrice = Math.floor(Me.data.SellPrice * 4)
       }
     });
 
@@ -199,7 +199,7 @@ export default Form((self, input) => {
       .if(isWeapon), // auto
     input.number("armor")
       .test(type.int.small.unsigned)
-      .if(data => isArmor(data) && hasArmor(data.subclass)), // auto
+      .if(data => isArmor(data) && hasArmor(data)), // auto
     input.number("block")
       .test(type.int.medium.unsigned)
       .if(isShield), // auto
@@ -208,7 +208,7 @@ export default Form((self, input) => {
       .if(data => isWeapon(data) || isArmor(data) && hasArmor(data)), // auto
     minMoney,
     maxMoney,
-    _fill(Array(10), null).map((_, i) => makeStatInput(i, input, self.data)),
+    _fill(Array(10), null).map((_, i) => makeStatInput(i, input, Me.data)),
   ];
 
   const other = [
@@ -239,12 +239,12 @@ export default Form((self, input) => {
     ui.div({style: style.box, id: "stats"}, values),
     ui.div({style: style.box, id: "restrictions"}, restrictions));
 
-  on.resize(state => elem.style.height = (state.dom.h - 40) +"px");
+  on.resize(state => elem.style.height = (state.dom.h - 60) +"px");
 
-  self.HTMLElement = elem;
+  Me.HTMLElement = elem;
 
-  window.__form__ = self;
+  window.__form__ = Me;
 
-  return self;
+  return Me;
 });
 

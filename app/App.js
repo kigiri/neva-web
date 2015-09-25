@@ -1,20 +1,19 @@
 import ui from "ui/new";
-import loop from 'event/loop';
-import ItemForm from "./ItemForm";
-import Search from "./Search";
-import Progress from "./Progress";
-import ToolTip from "./ToolTip";
 import sup from "$/sup";
+import loop from 'event/loop';
+import Search from "./Search";
+import ToolTip from "./ToolTip";
+import Progress from "./Progress";
 
 sup("dataWorker", {
   progress: Progress.set,
-  clearResults: Search.results.clear,
-  result: (score, data) => {
-    Search.results.push(score, data.name, data, "entry");
+  clearResults: Search.Results.clear,
+  result: (...resultsArray) => {
+    Search.Results.push(resultsArray, "entry"); // need to import primaryKeys
   },
 }).then(worker =>{
   window.ask = worker.ask;
-  Search.bar.add(value => worker.ask(Search.bar.selectedList, value))
+  Search.Bar.add(value => worker.ask(Search.Bar.selectedList.name, value))
 });
 
 const me = {

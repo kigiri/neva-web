@@ -1,4 +1,3 @@
-import 'style/init';
 import App from './App';
 
 export default function main() {

@@ -16,7 +16,7 @@ const dataStore = {};
 const MAX_RESULTS = 50 - 1;
 const messages = {
   ask: (table, q) => query[table](q),
-};
+}
 
 function newSqlData(keys, values) {
   let i = -1;
@@ -137,15 +137,41 @@ function MatchList(q, key, fn) {
   return Me;
 }
 
+function throttle(q, fn, max) {
+  let results = [];
+  let start = performance.now();
+  let timeout;
+  let i = -1;
+
+  const apply = (msg) => {
+    if (results && results.length) {
+      fn.apply(null, results);
+      results = [];
+    }
+    start = performance.now();
+  }
+
+  return (...args) => {
+    const diff = performance.now() - start;
+    results.push(args);
+    clearTimeout(timeout);
+    if (previousQuery !== q) { return }
+    if (diff > max) { return apply() }
+    timeout = setTimeout(apply, max - diff + 1);
+  }
+}
+
 let Say;
 let previousQuery;
 const query = {
   items: (q) => {
     q = q.trim().toLowerCase();
     if (previousQuery === q) { return }
-    previousQuery = q;
+    let start = performance.now();
     const vals = dataStore.item_template.values;
-    let i = -1, match = MatchList(q, "name", Say.result);
+    let i = -1;
+    let match = MatchList(previousQuery = q, "name", throttle(q, Say.result, 16));
+
     Say.clearResults();
     (function recur() {
       if (previousQuery !== q) { return }
@@ -246,7 +272,7 @@ fetch("//neva.cdenis.net/json/tables.min.json")
     size: data.sizes[key],
     keys: data.tables[key],
     values: [],
-  };
+  }
   return result;
 }, dataStore))
 .then(() => sup(messages))
