@@ -20,7 +20,7 @@ const elem = ui.div({
     transitionProperty: "opacity",
     transitionDuration: ".2s",
     transitionTimingFunction: "linear",
-    pointerEvent: "none",
+    pointerEvents: "none",
     boxShadow: "0 0 0 1px black, 0 0 10px black",
     borderRadius: "5px",
     zIndex: "9999",

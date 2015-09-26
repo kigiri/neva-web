@@ -10,11 +10,13 @@ let lastOpenElement;
 
 function open(el) {
   Results.HTMLElement.remove();
+  Bar.disable();
   elem.appendChild(el);
   lastOpenElement = el;
 }
 
 function loadResults() {
+  console.log("loadResults", lastOpenElement);
   if (lastOpenElement) {
     lastOpenElement.remove();
   }
@@ -31,7 +33,7 @@ const list = [
     select: () => Results.select(),
     activate: () => Results.setList(list[0]), // meh...
     open: data => {
-      ItemForm.data = data;
+      ItemForm.load(data);
       open(ItemForm.HTMLElement);
     }
   },
@@ -42,6 +44,7 @@ const list = [
 
 function init() {
   list.forEach(Bar.push);
+  Bar.init(loadResults);
   Bar.select();
 }
 

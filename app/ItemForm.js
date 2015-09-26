@@ -4,6 +4,7 @@ import _keys from "_/object/keys";
 import _fill from "_/array/fill";
 import DOMLoader from "$/DOMLoader";
 import { on } from "event";
+import images from "./images";
 
 import type from "$/type";
 
@@ -181,13 +182,19 @@ export default Form((Me, input) => {
       }
     });
 
+  const qualityInput = input.select("Quality", qualities.map(q => q.name))
+    .add(_ => {
+      console.log("quality changed");
+      setQuality();
+    })
+    .each((el, i) => {
+      const style = el.childNodes[1].style;
+      style.color = qualities[i].color.min(50);
+      style.textShadow = "1px 1px 0 black";
+    });
+
   const values = [
-    input.select("Quality", qualities.map(q => q.name))
-      .each((el, i) => {
-        const style = el.childNodes[1].style;
-        style.color = qualities[i].color.toString();
-        style.textShadow = "1px 1px 0 black";
-      }),
+    qualityInput,
     input.number("delay")
       .test(type.int.small.unsigned)
       .if(isWeapon),
@@ -211,8 +218,11 @@ export default Form((Me, input) => {
     _fill(Array(10), null).map((_, i) => makeStatInput(i, input, Me.data)),
   ];
 
+  const nameInput = input.text("name", 255);
+  nameInput.HTMLElement.style.paddingLeft = "64px";
+
   const other = [
-    input.text("name", 255),
+    nameInput,
     input.text("description", 255),
     input.bitmask("Flags", flags.base.bitmask, 1),
     input.bitmask("FlagsExtra", flags.extra.bitmask, 2),
@@ -234,17 +244,49 @@ export default Form((Me, input) => {
     input.text("ScriptName", 64),
   ];
 
-  const elem = ui.form({ id: "item-form", style: style.form },
-    ui.div({style: style.box, id: "other"}, other),
-    ui.div({style: style.box, id: "stats"}, values),
-    ui.div({style: style.box, id: "restrictions"}, restrictions));
+  const itemIcon = ui.div({ style: {
+    width: "56px",
+    height: "56px",
+    border: "1px solid white",
+    outline: "solid 1px black",
+    outlineOffset: "-2px",
+    boxShadow: "0 0 0 1px black",
+    position: "absolute",
+    zIndex: "9",
+    left: "2px",
+    top: "2px",
+  }});
+  const boxOther = ui.div({style: style.box, id: "other"}, itemIcon, other);
+  const boxRestriction = ui.div({style: style.box, id: "restrictions"}, restrictions);
+  const elem = ui.form({
+    id: "item-form",
+    style: style.form
+  }, boxOther, ui.div({style: style.box, id: "stats"}, values), boxRestriction);
 
   on.resize(state => elem.style.height = (state.dom.h - 60) +"px");
 
   Me.HTMLElement = elem;
+
+  function setQuality() {
+    const color = qualities[Me.data.Quality].color;
+    itemIcon.style.borderColor = color.toString();
+    qualityInput.setColor(color.max(60));
+  }
+
+  Me.load = data => {
+    Object.keys(data).forEach(key => Me.data[key] = data[key]);
+    const model = images.toCss(images.getModel(data.entry));
+    boxRestriction.style.background = (model
+      ? gradientPrefix + model +" no-repeat bottom right, "
+      : "") + style.box.background;
+    itemIcon.style.backgroundImage = "url('"+ images.getIcon(data.entry, "large") +"')";
+    setQuality();
+  };
 
   window.__form__ = Me;
 
   return Me;
 });
 
+const gradientPrefix = 'linear-gradient(0, transparent 180px, #4B4B4B 200px,'
+  +'#4B4B4B 300px, transparent), ';

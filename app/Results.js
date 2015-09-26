@@ -1,5 +1,6 @@
 import ui from "ui/new";
 import by from "$/by";
+import is from "$/is";
 import loop from "event/loop";
 import {search as style} from "style/inputs";
 
@@ -21,6 +22,9 @@ function Result(_, i) {
       if (!r) {
         elem.style.transitionDuration = "500ms";
         elem.style.opacity = 0;
+        if (me.content && is.fn(me.content.hide)) {
+          me.content.hide();
+        }
         return me;
       }
       me.score = r.score;
@@ -36,11 +40,15 @@ function Result(_, i) {
   return me;
 }
 
+const highLightStyle = "linear-gradient(0, black, transparent 4%, #3E3E3E 86%,"
+  + "#393939, #7E7566)";
+
 const resultsElem = Array.from(Array(MAX_RESULTS), Result);
 const tableHead = ui.thead({});
 const tableBody = ui.tbody({}, resultsElem);
 const elem = ui.table({
   style: {
+    textShadow: "1px 1px #000",
     width: "100%",
     borderCollapse: "collapse",
     tableLayout: "fixed",
@@ -71,7 +79,7 @@ Me.highLight = index => {
   console.log(index);
   resultsElem[selected].HTMLElement.style.background = "";
   selected = index;
-  resultsElem[selected].HTMLElement.style.background = "rgba(255, 255, 255, 0.2)";
+  resultsElem[selected].HTMLElement.style.background = highLightStyle;
   return Me;
 }
 

@@ -59,7 +59,13 @@ function deselectListIfEmpty() {
 }
 
 const skip = () => {};
-const selectInput = e => selectEditableContent(input);
+const selectInput = e => {
+  if (me.disabled) {
+    me.enable();
+  }
+  me.select();
+}
+
 const input = ui.span({
   tabIndex: 1,
   onfocus: selectInput, 
@@ -113,7 +119,7 @@ const input = ui.span({
     },
   }),
 });
-const innerBar = ui.span({ id: "caca", style: style.innerBar }, "waht");
+const innerBar = ui.span({ style: style.innerBar });
 const autoComlete = ui.span({ style: {
   color: "#666",
   whiteSpace: "pre",
@@ -169,6 +175,30 @@ me.HTMLElement = elem;
 
 me.select = () => {
   selectEditableContent(input);
+  return me;
+}
+
+let loadResults;
+me.init = fn => {
+  loadResults = fn;
+}
+
+me.disable = () => {
+  me.disabled = true;
+  input.contentEditable = false;
+  input.tabIndex = -1;
+  me.HTMLElement.style.opacity = 0.3;
+  return me;
+}
+
+me.enable = () => {
+  me.disabled = false;
+  input.contentEditable = true;
+  input.tabIndex = 0;
+  me.HTMLElement.style.opacity = 1;
+  if (loadResults) {
+    loadResults();
+  }
   return me;
 }
 

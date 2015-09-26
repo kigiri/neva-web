@@ -78,9 +78,6 @@ function MatchList(q, key, fn) {
 
   function handleMatch(score, data) {
     if (score < minScore || firstMatches.get(data) === score) { return }
-    if (dataStore.icons) {
-      data.icon = dataStore.icons[data.entry];
-    }
     fn(score, data);
     firstMatches.set(data, score);
     matches.push(score)
@@ -244,27 +241,6 @@ const loadTablesData = say => new Promise(resolve => {
   Say = say;
 });
 
-function setIcon(entries, name) {
-  var i = -1;
-  while (++i < entries.length) {
-    dataStore.icons[entries[i]] = name;
-  }
-}
-
-const fetchIcons = () => new Promise(resolve => {
-  dataStore.icons = {};
-  fetch("//neva.cdenis.net/json/icons.json")
-  .then(res => res.json())
-  .then(icons => {
-    const names = Object.keys(icons);
-    var i = -1;
-    while (++i < names.length) {
-      setIcon(icons[names[i]], names[i]);
-    }
-  })
-  .then(resolve)
-})
-
 fetch("//neva.cdenis.net/json/tables.min.json")
 .then(res => res.json())
 .then(data => Object.keys(data.tables).reduce((result, key) => {
@@ -277,7 +253,6 @@ fetch("//neva.cdenis.net/json/tables.min.json")
 }, dataStore))
 .then(() => sup(messages))
 .then(loadTablesData)
-.then(fetchIcons)
 // .then(() => console.log(dataStore, performance.now() - n));
 
 

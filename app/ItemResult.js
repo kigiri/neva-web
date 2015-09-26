@@ -1,13 +1,12 @@
 // [icon][name][lvl][class][subclass][itemslot]
 import { search as style } from "style/inputs";
 import classes from "data/item/classes";
+import images from "./images";
 import slots from "data/item/slots";
 import ui from "ui/new";
 
-function getIconLink(iconName) {
-  return iconName
-    ? "url('//cdn.openwow.com/wotlk/icons/small/"+ iconName +".jpg') no-repeat 50%"
-    : "";
+function getIconLink(entry) {  
+  return "url('"+ images.getIcon(entry) +"') no-repeat 50%";
 }
 
 const rowKeys = [
@@ -59,13 +58,34 @@ function generateRow(target, attrs, values) {
   })
 }
 
+const prevTimeouts = new WeakMap();
+let currentCount = 0;
+function clearIconRequest(icon) {
+  const req = prevTimeouts.get(icon);
+  if (req) {
+    currentCount--;
+    prevTimeouts.delete(icon);
+    clearTimeout(req);
+  }
+}
+
+function requestIcon(icon, entry) {
+  clearIconRequest(icon);
+  icon.style.opacity = 0;
+  currentCount++;
+  prevTimeouts.set(icon, setTimeout(() => {
+    icon.style.opacity = 1;
+    icon.style.background = getIconLink(entry);
+    currentCount--;
+    prevTimeouts.delete(icon);
+  }, currentCount * 30));
+  
+}
+
 function createElem(item) {
   const me = { item };
 
   me.elems = generateRow(me, {
-    icon: {
-      style: { background: getIconLink(item.icon) },
-    },
     lvl: {
       style: {
         color: "hsl("+ (160 - item.RequiredLevel * 2) +", 35%, 60%)",
@@ -77,16 +97,20 @@ function createElem(item) {
     },
   }, getValues(item));
 
+  // i have to set a delay because to spammy request cause long pendings
+  requestIcon(me.icon, item.entry);
   me.set = data => {
     if (me.item.entry === data.entry) { return }
     me.item = data;
-    me.icon.style.background = getIconLink(data.icon);
+    requestIcon(me.icon, data.entry);
     me.name.className = "quality"+ data.Quality;
     me.lvl.style.color = "hsl("+ (160 - data.RequiredLevel * 2) +", 35%, 60%)";
 
     const values = getValues(data);
     rowKeys.forEach(key => me[key].textContent = values[key] || "")
   }
+
+  me.hide = clearIconRequest;
 
   return me;
 }
@@ -99,7 +123,7 @@ function header() {
   })));
 }
 
-const ItemResult = (result) => {
+const ItemResult = result => {
   if (result.type !== "item") {
     result.type = "item";
     if (result.content) {
