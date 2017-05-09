@@ -20,8 +20,8 @@ import is from "./is";
 
 */
 
-function wesh(key, ...agrs) {
-  this[key].apply(null, agrs);
+function wesh(key, ...args) {
+  this[key].apply(null, args);
 }
 
 const buildMesseger = (w, keys) => keys.reduce((r, key) => {
@@ -32,10 +32,8 @@ const buildMesseger = (w, keys) => keys.reduce((r, key) => {
 const yo = (a, b) => is.text(a) ? yo.ping(a, b) : yo.pong(a);
 
 yo.pong = msg => new Promise(resolve => {
-  console.log("registering worker")
   onmessage = event => {
     onmessage = e => wesh.apply(msg, e.data);
-    console.log("solving worker")
     resolve(buildMesseger(self, event.data));
   }
   postMessage(_keys(msg));
@@ -43,11 +41,9 @@ yo.pong = msg => new Promise(resolve => {
 
 yo.ping = (name, msg) => new Promise(resolve => {
   const w = new Worker("/"+ name +".js?" + Math.random());
-  console.log("registering main")
   w.onmessage = event => {
     w.postMessage(_keys(msg));
     w.onmessage = e => wesh.apply(msg, e.data);
-    console.log("solving main")
     resolve(buildMesseger(w, event.data));
   }
 });

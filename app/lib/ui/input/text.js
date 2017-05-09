@@ -125,5 +125,7 @@ export default function text(form, key, limit = Infinity) {
     }
   });
 
+  input.setColor = color => inputElem.style.color = color;
+
   return input;
 }

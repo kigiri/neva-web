@@ -1,9 +1,6 @@
 import _keys from "_/object/keys";
 
 export default (name, msg) => {
-  console.log("settin'", name)
-  if (_workers[name]) { return console.error("worker", name, "already here!") }
-
   const w = new Worker("/"+ name +".js");
 
   function yo(key, ...agrs) {

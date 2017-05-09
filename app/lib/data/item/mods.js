@@ -36,12 +36,23 @@ const mods = {
     2.6,   // mail
     4.6,   // plate
   ],
+  quality: [
+    0,     // poor
+    0,     // common
+    1,     // uncommon
+    1.1,   // rare
+    1.375, // epic
+    1,     // legendary
+    1,     // artifact
+    1,     // heirloom
+  ],
   bonusArmor: [
     14,
   ],
+  lvl: [],
   stat: [
-    15,   // 0 MANA // disabled
-    10,   // 1 HEALTH // disabled
+    15,   // 0 MANA                      // disabled
+    10,   // 1 HEALTH                    // disabled
     1,    // 3 AGILITY
     1,    // 4 STRENGTH
     1,    // 5 INTELLECT
@@ -51,33 +62,33 @@ const mods = {
     1,    // 13 DODGE_RATING
     1,    // 14 PARRY_RATING
     1,    // 15 BLOCK_RATING
-    1,    // 16 HIT_MELEE_RATING // disabled
-    1,    // 17 HIT_RANGED_RATING // disabled
-    1,    // 18 HIT_SPELL_RATING // disabled
-    1,    // 19 CRIT_MELEE_RATING // disabled
-    1,    // 20 CRIT_RANGED_RATING // disabled
-    1,    // 21 CRIT_SPELL_RATING // disabled
-    1,    // 22 HIT_TAKEN_MELEE_RATING // disabled
-    1,    // 23 HIT_TAKEN_RANGED_RATING // disabled
-    1,    // 24 HIT_TAKEN_SPELL_RATING // disabled
-    1,    // 25 CRIT_TAKEN_MELEE_RATING // disabled
+    1,    // 16 HIT_MELEE_RATING         // disabled
+    1,    // 17 HIT_RANGED_RATING        // disabled
+    1,    // 18 HIT_SPELL_RATING         // disabled
+    1,    // 19 CRIT_MELEE_RATING        // disabled
+    1,    // 20 CRIT_RANGED_RATING       // disabled
+    1,    // 21 CRIT_SPELL_RATING        // disabled
+    1,    // 22 HIT_TAKEN_MELEE_RATING   // disabled
+    1,    // 23 HIT_TAKEN_RANGED_RATING  // disabled
+    1,    // 24 HIT_TAKEN_SPELL_RATING   // disabled
+    1,    // 25 CRIT_TAKEN_MELEE_RATING  // disabled
     1,    // 26 CRIT_TAKEN_RANGED_RATING // disabled
-    1,    // 27 CRIT_TAKEN_SPELL_RATING // disabled
-    1,    // 28 HASTE_MELEE_RATING // disabled
-    1,    // 29 HASTE_RANGED_RATING // disabled
-    1,    // 30 HASTE_SPELL_RATING // disabled
+    1,    // 27 CRIT_TAKEN_SPELL_RATING  // disabled
+    1,    // 28 HASTE_MELEE_RATING       // disabled
+    1,    // 29 HASTE_RANGED_RATING      // disabled
+    1,    // 30 HASTE_SPELL_RATING       // disabled
     1,    // 31 HIT_RATING
     1,    // 32 CRIT_RATING
-    1,    // 33 HIT_TAKEN_RATING // disabled
-    1,    // 34 CRIT_TAKEN_RATING // disabled
-    1,    // 35 RESILIENCE_RATING // disabled
+    1,    // 33 HIT_TAKEN_RATING         // disabled
+    1,    // 34 CRIT_TAKEN_RATING        // disabled
+    1,    // 35 RESILIENCE_RATING        // disabled
     1,    // 36 HASTE_RATING
     1,    // 37 EXPERTISE_RATING
     2,    // 38 ATTACK_POWER
-    2.5,  // 39 RANGED_ATTACK_POWER // disabled
-    3,    // 40 FERAL_ATTACK_POWER // disabled
-    2.2,  // 41 SPELL_HEALING_DONE // disabled
-    1.15, // 42 SPELL_DAMAGE_DONE // disabled
+    2.5,  // 39 RANGED_ATTACK_POWER      // disabled
+    3,    // 40 FERAL_ATTACK_POWER       // disabled
+    2.2,  // 41 SPELL_HEALING_DONE       // disabled
+    1.15, // 42 SPELL_DAMAGE_DONE        // disabled
     0.5,  // 43 MANA_REGENERATION
     1,    // 44 ARMOR_PENETRATION_RATING
     1.15, // 45 SPELL_POWER
@@ -86,5 +97,11 @@ const mods = {
     1.5,  // 48 BLOCK_VALUE
   ]
 };
+
+let n = 170;
+for (let i = 80; i > -1; i--) {
+  mod.lvl[i] = Math.max(0, n);
+  n = (n - 0.5) / 1.033333;
+}
 
 export default mods;

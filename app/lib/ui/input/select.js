@@ -262,6 +262,8 @@ export default function select(form, key, list) {
     elem.classList[(!show || show(form.data)) ? "remove" : "add"]("hide");
   });
 
+  input.setColor = color => display.style.color = color;
+
   fallthrough(input, selector, "each");
 
   return input;

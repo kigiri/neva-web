@@ -1,7 +1,27 @@
+import addCss from "style/add";
 import ui from "./ui";
 import box from "./box";
 import apply from "./apply";
 import colors from "data/color";
+import qualities from "data/item/qualities";
+
+function genClass(name, key, val, notImportant) {
+  return '.'+ name +' { '+ key +':'+ val + (notImportant ? '' : '!important') +'}';
+}
+
+addCss('.hide { display: none!important }')
+('.invalid { color: red!important }')
+('html {background:#202020; font-family:monospace; color:white; height:100%}')
+('input[type="number"] { -moz-appearance: textfield }')
+('tr:nth-child(even) { background: rgb(29, 29, 29); border: 0}')
+('td:first-child { background: linear-gradient(270deg, transparent, #202020)')
+('td:last-child { background: linear-gradient(90deg, transparent, #202020)')
+('input[type="number"]::-webkit-outer-spin-button,',
+ 'input[type="number"]::-webkit-inner-spin-button ',
+ '{ -webkit-appearance: none; margin: 0 }');
+
+qualities.forEach((q, i) =>
+  addCss(genClass('quality'+ i, 'color', q.color.toString())))
 
 const toAttrs = style => ({style});
 
@@ -192,6 +212,9 @@ export default {
     box: box({
       width: "33%",
       boxSizing: "border-box",
+      paddingTop: "26px",
+      position: "relative",
+      background: "linear-gradient(#333, #444 100px, #4C4C4C 94%, #333 101%)",
     }),
   },
 
@@ -263,6 +286,21 @@ export default {
   },
 
   search: {
+    result: ui({
+      opacity: "0",
+      transitionProperty: "opacity",
+      transitionDuration: "0s",
+      transitionDelay: "64ms",
+      transitionTimingFunction: "cubic-bezier(0, 0.5, 0, 1)",
+    }),
+    subResult: apply({
+      padding: ".3em",
+      color: "#999",
+      textAlign: "center",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+    }),
     outerBar: outerBar({
       width: "100%",
       height: "35px",

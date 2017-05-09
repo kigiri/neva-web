@@ -74,13 +74,13 @@ function insertHsl(colr) {
 }
 
 function initFromInt(intValue) {
-  const self = intToRgb(intValue);
+  const me = intToRgb(intValue);
 
-  self.int = intValue;
-  self.hex = intToHex(intValue);
-  insertHsl(self);
+  me.int = intValue;
+  me.hex = intToHex(intValue);
+  insertHsl(me);
 
-  return self;
+  return me;
 }
 
 function initColr(value) {
@@ -103,12 +103,12 @@ function initColr(value) {
 const isColr = colr => colr.type === COLR_TYPE;
 
 function parseColr(value) {
-  const self = initColr(value);
-  self.type = COLR_TYPE;
+  const me = initColr(value);
+  me.type = COLR_TYPE;
 
-  self.clone = () => parseColr(self.hex),
-  self.getComplementary = () => {
-    const comp = self.clone();
+  me.clone = () => parseColr(me.hex),
+  me.getComplementary = () => {
+    const comp = me.clone();
     comp.h = comp.h > 180 ? comp.h - 180 : comp.h + 180;
     comp.l += 50;
     if (comp.l > 100) {
@@ -116,20 +116,23 @@ function parseColr(value) {
     }
     return applyHsl(comp);
   };
-  self.getGrayScale = () => {
-    const comp = self.clone();
+  me.getGrayScale = () => {
+    const comp = me.clone();
     comp.s = 0;
     return applyHsl(comp);
   };
-  self.toString = type => {
+  me.map = map => "hsl("+ me.h +","+ me.s +"%,"+ map(me.l) +"%)";
+  me.min = min => "hsl("+ me.h +","+ me.s +"%,"+ Math.min(me.l, min) +"%)";
+  me.max = max => "hsl("+ me.h +","+ me.s +"%,"+ Math.max(me.l, max) +"%)";
+  me.toString = type => {
     switch (type) {
-      case "hsl": return "hsl("+ self.h +","+ self.s +"%,"+ self.l +"%)";
-      case "rgb": return "rgb("+ self.r +","+ self.g +","+ self.b +")";
-      default: return "#"+ self.hex;
+      case "hsl": return "hsl("+ me.h +","+ me.s +"%,"+ me.l +"%)";
+      case "rgb": return "rgb("+ me.r +","+ me.g +","+ me.b +")";
+      default: return "#"+ me.hex;
     }
   }
-  self.hex = value;
-  return self;
+  me.hex = value;
+  return me;
 }
 
 export default parseColr;

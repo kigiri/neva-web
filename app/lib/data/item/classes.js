@@ -8,7 +8,7 @@ const itemClasses = [
       "Elixir",
       "Flask",
       "Scroll",
-      "Food &amp; Drink",
+      "Food & Drink",
       "Item Enhancement",
       "Bandage",
       "Other",
@@ -45,7 +45,7 @@ const itemClasses = [
       "Exotic",
       "Exotic",
       "Fist Weapon",
-      "Miscellaneous (Blacksmith Hammer, Mining Pick, etc.)",
+      "Miscellaneous", // (Blacksmith Hammer, Mining Pick, etc.)
       "Dagger",
       "Thrown",
       "Spear",
@@ -72,6 +72,7 @@ const itemClasses = [
   {
     name: "Armor",
     sub: [
+      "",
       "Cloth",
       "Leather",
       "Mail",
@@ -84,7 +85,7 @@ const itemClasses = [
       "Sigil",
     ]
   },
-  "Reagent" },
+  { name: "Reagent", sub: [] },
   {
     name: "Projectile",
     sub: [
@@ -116,7 +117,7 @@ const itemClasses = [
       "Weapon Enchantment",
     ]
   },
-  "Generic (OBSOLETE)" },
+  { name: "Generic (OBSOLETE)", sub: [] },
   {
     name: "Recipe",
     sub: [
@@ -133,7 +134,7 @@ const itemClasses = [
       "Jewelcrafting",
     ]
   },
-  "Money (OBSOLETE)" },
+  { name: "Money (OBSOLETE)", sub: [] },
   {
     name: "Quiver",
     sub: [
@@ -143,7 +144,7 @@ const itemClasses = [
       "Ammo Pouch",
     ]
   },
-  "Quest" },
+  { name: "Quest", sub: [] },
   {
     name: "Key",
     sub: [
@@ -151,7 +152,7 @@ const itemClasses = [
       "Lockpick",
     ]
   },
-  "Permanent (OBSOLETE)" },
+  { name: "Permanent (OBSOLETE)", sub: [] },
   {
     name: "Miscellaneous",
     sub: [
@@ -166,6 +167,7 @@ const itemClasses = [
   {
     name: "Glyph",
     sub: [
+      "none",
       "Warrior",
       "Paladin",
       "Hunter",
@@ -175,6 +177,7 @@ const itemClasses = [
       "Shaman",
       "Mage",
       "Warlock",
+      "Monk",
       "Druid",
     ]
   },

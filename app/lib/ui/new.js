@@ -55,11 +55,18 @@ function $new(key) {
   "i",
   "s",
   "p",
+  "td",
+  "th",
+  "tr",
   "h1",
   "div",
   "img",
+  "form",
   "span",
   "input",
+  "table",
+  "tbody",
+  "thead",
   "label",
   "color",
   "legend",
@@ -68,7 +75,6 @@ function $new(key) {
   "fieldset",
   "datalist",
   "textarea",
-  "form"
 ].forEach(function (key) { $new[key] = newHTMLElement.bind({key: key}); });
 
 export default $new;

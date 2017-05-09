@@ -48,6 +48,12 @@ function deleteKeys(keys, obj) {
   return obj;
 }
 
+const defaultReturn = {
+  type: "0",
+  value: 0,
+  count: 0
+};
+
 function makeStatInput(i, input, item) {
   const index = i + 1;
   const isInRange = data => data.StatsCount + 1 >= index;
@@ -63,17 +69,20 @@ function makeStatInput(i, input, item) {
 
   function applyChanges() {
     if (item[typeKey] != 0) {
+      // typeInput.setColor("");
       if (item[valueKey] != 0) {
         item.StatsCount = Math.max(index, item.StatsCount);
+        // valueInput.setColor("white");
+      } else {
+        // valueInput.setColor("darkgrey");
       }
       return;
-    } else if (item[valueKey] != 0) { return }
+    } else if (item[valueKey] != 0) {
+      // typeInput.setColor("darkgrey");
+      // valueInput.setColor("white");
+      return;
+    }
 
-    const defaultReturn = {
-      type: "0",
-      value: 0,
-      count: 0
-    };
 
     const data = (function recur(i) {
       if (i > 10) { return defaultReturn }
@@ -94,6 +103,8 @@ function makeStatInput(i, input, item) {
 
     setStatData(typeKey, valueKey, data);
     item.StatsCount = Math.min(item.StatsCount, index + data.count - 1);
+    // typeInput.setColor("darkgrey");
+    // valueInput.setColor("darkgrey");
   }
 
   const typeInput = input.select(typeKey, stats)
@@ -273,6 +284,9 @@ export default Form((Me, input) => {
     qualityInput.setColor(color.max(60));
   }
 
+  const gradientPrefix = 'linear-gradient(0, transparent 180px, #4B4B4B 200px,'
+    +'#4B4B4B 300px, transparent), ';
+
   Me.load = data => {
     Object.keys(data).forEach(key => Me.data[key] = data[key]);
     const model = images.toCss(images.getModel(data.entry));
@@ -287,6 +301,3 @@ export default Form((Me, input) => {
 
   return Me;
 });
-
-const gradientPrefix = 'linear-gradient(0, transparent 180px, #4B4B4B 200px,'
-  +'#4B4B4B 300px, transparent), ';

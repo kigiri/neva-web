@@ -72,14 +72,13 @@ function clearIconRequest(icon) {
 function requestIcon(icon, entry) {
   clearIconRequest(icon);
   icon.style.opacity = 0;
-  currentCount++;
   prevTimeouts.set(icon, setTimeout(() => {
     icon.style.opacity = 1;
     icon.style.background = getIconLink(entry);
     currentCount--;
     prevTimeouts.delete(icon);
   }, currentCount * 30));
-  
+  currentCount++;
 }
 
 function createElem(item) {

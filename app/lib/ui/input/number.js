@@ -159,5 +159,7 @@ export default function number(form, key, wide) {
     }
   });
 
+  input.setColor = color => inputElem.style.color = color;
+
   return input;
 }
